@@ -59,14 +59,17 @@ async def search_patents(query: str, range_begin: int = 1, range_end: int = 25) 
 @mcp.tool()
 async def get_bibliographic_data(
     patent_number: str,
-    input_format: str = "epodoc",
+    input_format: str = "docdb",
     constituents: str = "biblio,abstract",
 ) -> str:
     """特許番号から書誌情報・要約を取得し、JSON文字列で返す。
 
     Args:
-        patent_number: 特許番号。epodoc形式の例: 'EP1000000A1'
-        input_format: 'epodoc' または 'docdb'
+        patent_number: 特許番号。
+            docdb形式（推奨）の例: 'EP.4803425.A1'（search_patentsの結果に含まれる
+            country/doc-number/kindを'.'で連結するだけでよい）
+            epodoc形式の例: 'EP4803425'（kindコードを付けると見つからない場合がある）
+        input_format: 'docdb'（推奨） または 'epodoc'
         constituents: 取得する構成要素（カンマ区切り）。デフォルトは 'biblio,abstract'
     """
     try:

@@ -18,7 +18,7 @@ from .config import Settings
 
 _TOKEN_PATH = "/auth/accesstoken"
 _SEARCH_PATH = "/rest-services/published-data/search"
-_BIBLIO_PATH = "/rest-services/published-data/publication/{reference_type}/{input_format}/{number}/{constituents}"
+_BIBLIO_PATH = "/rest-services/published-data/{reference_type}/{input_format}/{number}/{constituents}"
 
 # トークンの有効期限ギリギリで使ってエラーになるのを避けるための安全マージン
 _TOKEN_SAFETY_MARGIN_SECONDS = 30
@@ -113,15 +113,19 @@ class OPSClient:
         self,
         patent_number: str,
         *,
-        input_format: str = "epodoc",
+        input_format: str = "docdb",
         reference_type: str = "publication",
         constituents: str = "biblio,abstract",
     ) -> dict:
         """特許番号から書誌情報・要約（abstract）を取得する。
 
         Args:
-            patent_number: 特許番号。epodoc形式の例: 'EP1000000A1'
-            input_format: 'epodoc' または 'docdb'
+            patent_number: 特許番号。
+                docdb形式（推奨。search_patentsの結果のcountry/doc-number/kindを
+                '.'で連結するだけでよい）の例: 'EP.4803425.A1'
+                epodoc形式の例: 'EP4803425'（末尾にkindコードを付けると
+                SERVER.EntityNotFoundになる場合があるため付けないこと）
+            input_format: 'docdb'（推奨） または 'epodoc'
             reference_type: 通常は 'publication'
             constituents: 取得する構成要素。'biblio' 'abstract' をカンマ区切りで指定
         """

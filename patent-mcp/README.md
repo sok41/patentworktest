@@ -25,28 +25,28 @@ EPO Open Patent Services（OPS。Espacenetの背後にあるAPI）を経由し�
 
 ## 親プロジェクトからの接続
 
-`../.mcp.json` の `patent-search-mcp` エントリのコマンドを、このプロジェクトを起動する内容に差し替える。例:
+`../.mcp.json` の `patent-search-mcp` エントリで、このプロジェクトのvenv内のpythonを直接起動している（`uv`が呼び出し側のPATHに無くても動くようにするため）:
 
 ```json
 {
   "mcpServers": {
     "patent-search-mcp": {
       "type": "stdio",
-      "command": "uv",
-      "args": ["--directory", "patent-mcp", "run", "patent-mcp"]
+      "command": "patent-mcp/.venv/Scripts/python.exe",
+      "args": ["-m", "patent_mcp"]
     }
   }
 }
 ```
 
-（`command`/`args` はOSやuvの配置場所により調整が必要な場合がある）
+`uv sync` を実行すると `.venv` が作られ、このパスで起動できるようになる。venvの場所を変えた場合はこの設定も合わせて更新すること。
 
 ## 提供ツール
 
 | ツール | 内容 |
 |---|---|
 | `search_patents(query, range_begin=1, range_end=25)` | OPSの `published-data search` をCQLクエリで実行し、ヒット結果をJSONで返す。例: `query='ti=drone AND pd within "2020-2026"'` |
-| `get_bibliographic_data(patent_number, input_format="epodoc", constituents="biblio,abstract")` | 特許番号から書誌情報・要約を取得する。例: `patent_number='EP1000000A1'` |
+| `get_bibliographic_data(patent_number, input_format="docdb", constituents="biblio,abstract")` | 特許番号から書誌情報・要約を取得する。docdb形式推奨、例: `patent_number='EP.4803425.A1'`（`search_patents`の結果に含まれるcountry/doc-number/kindを`.`で連結するだけでよい）。epodoc形式を使う場合はkindコードを付けないこと（付けると`SERVER.EntityNotFound`になることがある） |
 
 CQLクエリの書き方は [OPS CQLシンタックス](https://www.epo.org/en/searching-for-patents/data/web-services/ops) や既存の `patsnap-search-formula` スキルを参照。
 
