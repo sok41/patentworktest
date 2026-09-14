@@ -1,0 +1,21 @@
+[project]
+name = "patent-mcp"
+version = "0.1.0"
+description = "EPO Open Patent Services (OPS) を経由して特許検索・書誌取得を行うMCPサーバー"
+readme = "README.md"
+authors = [
+    { name = "sok5150", email = "lemoned.rhcp@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]>=2.2.0",
+    "python-dotenv>=1.2.3",
+]
+
+[project.scripts]
+patent-mcp = "patent_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"

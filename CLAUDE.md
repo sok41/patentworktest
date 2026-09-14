@@ -28,19 +28,24 @@ patent-projects/                         # このリポジトリのルート
 │       └── stop_check_status.sh
 ├── docs/
 │   └── LEARNINGS.md                     # 失敗と恒久対策の記録
-└── projects/
-    ├── _index.md                        # 案件一覧・ステータス管理表
-    ├── _template/                       # 案件テンプレート（新規案件はこれをコピー）
-    ├── _archive/                        # 完了案件の格納先
-    └── <YYYY-MM-DD_案件名スラッグ>/       # 進行中の案件フォルダ
+├── projects/
+│   ├── _index.md                        # 案件一覧・ステータス管理表
+│   ├── _template/                       # 案件テンプレート（新規案件はこれをコピー）
+│   ├── _archive/                        # 完了案件の格納先
+│   └── <YYYY-MM-DD_案件名スラッグ>/       # 進行中の案件フォルダ
+└── patent-mcp/                          # 特許MCPサーバー本体（Python, EPO OPS連携）
+    ├── README.md                        # セットアップ手順
+    ├── .env                             # OPS_CONSUMER_KEY/SECRET（Git管理外）
+    └── src/patent_mcp/                  # search_patents / get_bibliographic_data ツール
 ```
 
 ## 3. MCPサーバー接続について
 
-- 特許データベースへの検索実行は、特許MCPサーバー（別プロジェクト「patent-mcp」で開発中）経由で行う。接続設定は `.mcp.json` にプロジェクトスコープで記載する（サーバー名: `patent-search-mcp`）。**現時点では `.mcp.json` はプレースホルダであり、`patent-mcp` 側の接続情報が確定次第、実値に差し替える必要がある。**
+- 特許データベースへの検索実行は、`patent-mcp/`（EPO Open Patent Services = OPS を利用、Espacenetの背後にあるAPI）経由で行う。接続設定は `.mcp.json` にプロジェクトスコープで記載している（サーバー名: `patent-search-mcp`、`patent-mcp/.venv/Scripts/python.exe -m patent_mcp` を起動）。
+- 初回利用前に `patent-mcp/README.md` の手順に従い、`patent-mcp/.env` に developers.epo.org で発行したConsumer Key/Secretを記入し、`uv sync` で依存関係をインストールする必要がある。
 - プロジェクトスコープのMCPサーバーは初回起動時に承認が必要。
-- APIキー等の認証情報はメンバー個人に持たせず、MCPサーバー側で一元管理する。`.mcp.json` に直接キーを書かない。
-- `patent-research` スキルはMCP未接続・未承認の場合、エラーにせずユーザーに接続を促す。
+- APIキー等の認証情報は `patent-mcp/.env`（Git管理外）にのみ保持し、`.mcp.json` や他のファイルに直接書かない。
+- `patent-research` スキルはMCP未接続・未承認（`.env`未設定含む）の場合、エラーにせずユーザーに接続を促す（`search_patents`/`get_bibliographic_data`は `[MCP未接続]` というテキストを返す）。
 
 ## 4. 案件管理
 
