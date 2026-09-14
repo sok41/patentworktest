@@ -48,7 +48,7 @@ EPO Open Patent Services（OPS。Espacenetの背後にあるAPI）を経由し�
 | `search_patents(query, range_begin=1, range_end=25)` | OPSの `published-data search` をCQLクエリで実行し、ヒット結果をJSONで返す。例: `query='ti=drone AND pd within "2020-2026"'` |
 | `get_bibliographic_data(patent_number, input_format="docdb", constituents="biblio,abstract")` | 特許番号から書誌情報・要約を取得する。docdb形式推奨、例: `patent_number='EP.4803425.A1'`（`search_patents`の結果に含まれるcountry/doc-number/kindを`.`で連結するだけでよい）。epodoc形式を使う場合はkindコードを付けないこと（付けると`SERVER.EntityNotFound`になることがある） |
 
-CQLクエリの書き方は [OPS CQLシンタックス](https://www.epo.org/en/searching-for-patents/data/web-services/ops) や既存の `patsnap-search-formula` スキルを参照。
+CQLクエリの書き方は [OPS CQLシンタックス](https://www.epo.org/en/searching-for-patents/data/web-services/ops) を参照（主なフィールドコードは `patent-research` スキルにも記載）。
 
 ## 認証の仕組み
 

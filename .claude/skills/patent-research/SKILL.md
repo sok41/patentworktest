@@ -1,6 +1,6 @@
 ---
 name: patent-research
-description: 案件の00_overview.mdにある特許調査観点をもとに検索式を作成し、特許MCPサーバー経由で検索を実行して結果を整理する。「特許調査して」「patent-research」「案件の特許調査を始めたい」といった依頼で使用する。
+description: 案件の00_overview.mdにある特許調査観点をもとにCQL検索式を作成し、patent-mcp（EPO OPS経由の特許MCPサーバー）で検索を実行して結果を整理する。「特許調査して」「patent-research」「案件の特許調査を始めたい」といった依頼で使用する。
 ---
 
 # patent-research（特許調査スキル）
@@ -10,13 +10,32 @@ description: 案件の00_overview.mdにある特許調査観点をもとに検�
 - 案件フォルダ内 `00_overview.md` の「特許調査観点」セクション
   （対象技術分野／対象出願人・競合／対象期間／その他の指定条件）
 
+## 使用するMCPサーバー
+
+`patent-mcp`（`.mcp.json` の `patent-search-mcp`。EPO Open Patent Services = OPS 経由）を使う。提供されるツールは以下の2つ（詳細は `patent-mcp/README.md` 参照）。
+
+| ツール | 用途 |
+|---|---|
+| `search_patents(query, range_begin=1, range_end=25)` | OPSのCQL検索式で特許を検索する |
+| `get_bibliographic_data(patent_number, input_format="docdb", constituents="biblio,abstract")` | 特許番号から書誌情報・要約を取得する |
+
+MCPサーバーが未接続・未承認、または `patent-mcp/.env` にキー未設定の場合、ツールはエラーで落ちずに `[MCP未接続] ...` というテキストを返す。その場合は処理を止め、接続・設定を促す旨をユーザーに伝える（`status.yaml` は更新しない）。
+
 ## 処理手順
 
 1. `00_overview.md` の特許調査観点を読み取る。記入が不十分な場合はユーザーに確認する。
-2. 検索式を作成する。既存の **patsnap-search-formula** スキル（本プロジェクト外に存在する前提）を内部利用できる場合はそれを呼び出す。利用できない場合はその旨をユーザーに伝えた上で、簡易的な検索式を自分で組み立てる。
-3. `.mcp.json` で接続された `patent-search-mcp` サーバー経由で検索を実行する。
-   - MCPサーバーが未接続・未承認の場合はエラーで停止せず、「特許MCPサーバーが未接続/未承認です。接続を承認してください」とユーザーに伝えて処理を止める（`status.yaml` は更新しない）。
-4. ヒットした特許をリスト化し、各特許のサマリ（概要・注目ポイント）を作成する。
+2. 特許調査観点をもとに、OPSのCQL検索式を自分で組み立てる。主なフィールドコード:
+   - `ti=` タイトル / `ab=` 要約 / `ti,ab=` 両方
+   - `pa=` 出願人・権利者（例: `pa="ACME Corp"`）
+   - `in=` 発明者
+   - `ic=` / `cpc=` IPC・CPC分類
+   - `pd within "YYYY-YYYY"` 公開日の範囲
+   - `AND` `OR` `NOT` で組み合わせ可能（例: `ti=drone AND pd within "2020-2026"`）
+   詳細な構文は [OPS CQLシンタックス](https://www.epo.org/en/searching-for-patents/data/web-services/ops) を参照。
+3. `search_patents` で検索を実行する。ヒット件数が多すぎる／少なすぎる場合は検索式を調整して再実行する。
+4. ヒットした特許の中から調査観点に合致するものを選び、`get_bibliographic_data` で書誌・要約を取得する。
+   - `patent_number` は `search_patents` の結果に含まれる `country`/`doc-number`/`kind` を `.` で連結した docdb 形式（例: `EP.4803425.A1`）で渡すこと。epodoc形式にkindコードを付けると見つからない場合があるため使わない。
+5. ヒットした特許をリスト化し、各特許のサマリ（概要・注目ポイント）を作成する。
 
 ## 出力
 
@@ -36,4 +55,4 @@ description: 案件の00_overview.mdにある特許調査観点をもとに検�
 
 ## 備考
 
-- 認証情報（APIキー等）は個人で保持せず、MCPサーバー側で一元管理される方針に従う。ここでキーの直接入力を求めない。
+- 認証情報（APIキー等）は個人で保持せず、`patent-mcp/.env` にのみ保持する方針に従う。ここでキーの直接入力を求めない。
