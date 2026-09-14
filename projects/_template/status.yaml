@@ -1,0 +1,8 @@
+project_id: ""    # 例: 2026-09-14_ドローン特許調査（フォルダ名と合わせる）
+created_at: ""    # 例: 2026-09-14
+phase:
+  patent_research: not_started   # not_started / in_progress / done
+  market_research: not_started   # not_started / in_progress / done
+  analysis: not_started          # not_started / in_progress / done
+  report: not_started            # not_started / in_progress / done
+archived: false

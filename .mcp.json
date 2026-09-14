@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "patent-search-mcp": {
+      "type": "stdio",
+      "command": "TODO_patent-mcpプロジェクトの起動コマンドに差し替える",
+      "args": []
+    }
+  }
+}
