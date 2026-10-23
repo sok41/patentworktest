@@ -1,6 +1,9 @@
 ---
 name: research-kickoff
 description: ユーザーが「〇〇についての調査・分析を開始して」のように調査開始を指示した場合に、対象の案件フォルダをprojects/配下から特定してユーザーに確認したうえで、patent-researchとmarket-researchを並列のサブエージェントとして同時に起動するオーケストレーションスキル。
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-09-25"
 ---
 
 # research-kickoff（調査開始オーケストレーション）

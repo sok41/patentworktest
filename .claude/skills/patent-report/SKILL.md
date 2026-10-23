@@ -1,6 +1,9 @@
 ---
 name: patent-report
 description: 分析結果（analysis_output.md）をもとに最終レポート（docx）を作成する。「レポート作成して」「patent-report」「最終レポートをまとめて」といった依頼で使用する。
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-09-25"
 ---
 
 # patent-report（レポート作成スキル）
@@ -18,6 +21,8 @@ description: 分析結果（analysis_output.md）をもとに最終レポート�
 1. 分析結果を読み込み、レポート構成案を作成する。
 2. docxスキル（Claude Code標準のドキュメント生成機能）を用いてレポートを整形する。
 3. 必要に応じて特許リストや出典を補足資料として添付する。
+4. `01_research/patent/charts/`・`01_research/market/charts/`・`02_analysis/charts/` に生成済みのグラフ画像（出願推移・出願人ランキング・市場規模成長率・技術動向分類等）があれば、対応する章に画像として埋め込む。文章だけの報告書にせず、視覚情報（グラフ）を欠かさないこと。
+5. 実際に使用した各スキル（`patent-research`/`market-research`/`patent-analysis`/`patent-report`自身）のSKILL.mdフロントマターから `name` と `metadata.version` を読み取り、レポート末尾に「使用スキル」セクションとして一覧記載する（例: `patent-research v1.0.0`）。
 
 ## 出力
 

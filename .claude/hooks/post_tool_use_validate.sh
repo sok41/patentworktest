@@ -45,9 +45,25 @@ check_headings() {
   fi
 }
 
+# charts/配下への画像リンク（Markdown形式）が最低min_count件埋め込まれているかを確認する。
+# グラフ画像の生成自体を機械的に検証することはできないが、見出しだけ用意して
+# 画像埋め込みを省略する事態を防ぐためのゲート。
+check_chart_images() {
+  local file="$1"
+  local min_count="$2"
+  local count
+  count="$(grep -oF '](charts/' "$file" 2>/dev/null | wc -l)"
+  if [[ "$count" -lt "$min_count" ]]; then
+    echo "post_tool_use_validate: $file にグラフ画像の埋め込み（例: ![出願推移](charts/filing_trend.png)）が不足しています（${count}件 / 必要${min_count}件）。" >&2
+    echo "scripts/chart_utils.py でグラフを生成し、charts/配下に保存のうえ画像リンクを埋め込んでください。" >&2
+    exit 2
+  fi
+}
+
 case "$norm_path" in
   */01_research/patent/research_output.md)
-    check_headings "$file_path" "## 使用した検索式" "## 対象特許リスト" "## 各特許のサマリ" "## 出典・参考URL"
+    check_headings "$file_path" "## 使用した検索式" "## 対象特許リスト" "## 出願推移" "## 出願人ランキング" "## 各特許のサマリ" "## 出典・参考URL"
+    check_chart_images "$file_path" 2
     ;;
   */01_research/market/market_research_output.md)
     check_headings "$file_path" "## 市場規模" "## 主要プレイヤー" "## トレンド" "## 出典・参考URL"

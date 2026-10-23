@@ -38,10 +38,14 @@ patent-projects/                         # このリポジトリのルート
 │   ├── _template/                       # 案件テンプレート（新規案件はこれをコピー）
 │   ├── _archive/                        # 完了案件の格納先
 │   └── <YYYY-MM-DD_案件名スラッグ>/       # 進行中の案件フォルダ
-└── patent-mcp/                          # 特許MCPサーバー本体（Python, EPO OPS連携）
-    ├── README.md                        # セットアップ手順
-    ├── .env                             # OPS_CONSUMER_KEY/SECRET（Git管理外）
-    └── src/patent_mcp/                  # search_patents / get_bibliographic_data ツール
+├── patent-mcp/                          # 特許MCPサーバー本体（Python, EPO OPS連携）
+│   ├── README.md                        # セットアップ手順
+│   ├── .env                             # OPS_CONSUMER_KEY/SECRET（Git管理外）
+│   └── src/patent_mcp/                  # search_patents / get_bibliographic_data ツール
+└── scripts/                             # グラフ生成ヘルパー（matplotlib、3.5節参照）
+    ├── README.md
+    ├── requirements.txt
+    └── chart_utils.py
 ```
 
 ## 3. MCPサーバー接続について
@@ -91,17 +95,64 @@ CLAUDE.mdやSkillsのプロンプトの工夫だけに頼らず、AIの振る舞
 
 これらのスクリプトはGit Bash（`bash`）で実行される想定。動作しない場合はPATHにGit Bashが通っているか確認する。
 
+- `Notification`（ユーザーへの確認待ち発生時）・`Stop`（セッション終了時）のタイミングでWindowsの通知音を再生するHookも`.claude/settings.json`に登録している（`stop_check_status.sh`の実行後、追加で音を鳴らす）。VSCode拡張機能利用時はWindows環境で`Notification`フックが発火しない既知の不具合があるため、本運用はターミナル（CLI）利用を前提とする。
+
 ### 7.2 LEARNINGS.md
 
 `docs/LEARNINGS.md` に運用中の問題と恒久対策を記録する。対策反映時は対応するCLAUDE.md/SKILL.md/Hooksの変更と紐づけて記載する。定期的に見返し、蓄積された対策をこのCLAUDE.mdの恒久ルールに昇格させること。
+
+### 7.3 スキルのバージョン管理
+
+- 各スキルのSKILL.mdフロントマターに `metadata.version`（セマンティックバージョニング `major.minor.patch`）と `metadata.last_updated` を記載する。SKILL.mdの内容を変更した際は必ずこの2項目を更新する。
+- 記載例:
+
+```yaml
+---
+name: patent-research
+description: ...
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-09-25"
+---
+```
+
+- 各スキルフォルダに `CHANGELOG.md` を置き、バージョンごとの変更内容を記録する（`docs/LEARNINGS.md` の恒久対策と紐づけて記載する）。
+- `patent-report` は最終レポート（docx）の末尾に、実際に使用した各スキル（`patent-research`/`market-research`/`patent-analysis`/`patent-report`自身）の`name`と`metadata.version`を「使用スキル」一覧として記載する。これにより、どのバージョンのスキルで作成されたレポートかを事後的に追跡できる。
+
+### 7.4 スクリプトの同梱とPython実行環境
+
+- ダウンロードしたデータの整形・重複除去・グラフ生成など「毎回同じ処理であるべきもの」は、その都度コードを書かせるのではなく、スキル配下（または`scripts/`共通フォルダ）にPythonスクリプトとして同梱し、SKILL.mdからそのスクリプトを実行するよう指示する。これにより実行のたびの処理のブレを防ぎ、再現性を担保する。
+- スクリプト実行前に`python --version`（またはそれに準ずるコマンド）でPythonがインストール済みか確認する。未インストールの場合、無言でインストールを進めず、ユーザーに「Pythonがインストールされていないためインストールします。よろしいですか」と確認したうえで進める（システムへの変更を伴うため実行前の確認を必須とする）。必要なライブラリ（pandas、matplotlib等）が不足している場合も同様に、インストール前にユーザーへ確認する。
 
 ## 8. 非機能要件・運用ルール
 
 - このフォルダはGitで管理し、構成変更時に差分を追跡・ロールバック可能にする。
 - 構成変更を行う場合は、このCLAUDE.mdを必ず同時に更新し、次回セッション以降も新ルールが反映されるようにする。
+- 将来的に特許調査・分析以外の業務（出願前調査・中間処理対応等）を追加する場合、業務固有の詳細ルールは`projects/<業務名>/README.md`に記載し、CLAUDE.mdからは参照のみ行う方針とする（業務追加によるCLAUDE.mdの肥大化を防ぐ。詳細は9章）。現時点は本業務（特許調査・分析）のみのため、詳細ルールは引き続きこのCLAUDE.mdに集約している。
 
-## 9. 将来的な拡張候補
+### 8.1 グラフ・視覚情報について
 
+- 調査・分析結果は文章だけでなく、可能な限りグラフ（画像）で視覚化する。特に以下は必須／推奨とする。
+  - `patent-research`: 出願推移（年次）、出願人ランキングのグラフ化は**必須**（`post_tool_use_validate.sh` が画像埋め込みの有無を機械的にチェックする）。
+  - `market-research`: 市場規模の成長推移が複数時点で得られた場合はグラフ化する（単一時点しかない場合は省略可、その旨を明記）。主要プレイヤーには近年の開発動向・トピックスを必ず添える。
+  - `patent-analysis`: 技術動向分類・競合マッピング等を推奨でグラフ化する。
+  - `patent-report`: 各フェーズで生成済みのグラフ画像をdocxレポートに埋め込む。
+- グラフ生成は `scripts/chart_utils.py`（matplotlib）の共通ヘルパーを使う。初回のみ `pip install -r scripts/requirements.txt` が必要（詳細は [scripts/README.md](./scripts/README.md)）。日本語ラベルはWindows標準の日本語フォントを自動検出して描画する。
+- 生成した画像は各フェーズ配下の `charts/` サブフォルダに保存し、出力Markdownからは相対パスの画像リンクで参照する（規約の詳細は `scripts/README.md`）。
+
+## 9. 将来的な拡張候補（複数業務プロジェクトへの拡張ロードマップ）
+
+[特許調査プロジェクト_要件定義書.md](./特許調査プロジェクト_要件定義書.md) 3章では、特許権利化業務には本プロジェクト（特許調査・分析）以外にも「出願前調査」「中間処理対応」等があるため、それらを将来追加できる構成への拡張を計画している。**以下は計画段階であり、まだ未実施**（現状は単一業務・フラット構成のまま）。着手する際はこのCLAUDE.mdと合わせて段階的に反映する。
+
+- `projects/`を業務ライン別に分割し、現行の`projects/_index.md`・`_template/`・`_archive/`・案件フォルダを`projects/analysis/`配下にネストする。`projects/prefiling-search/`・`projects/office-action/`等を業務追加時に新設する。
+- スキル名に業務プレフィックスを付ける（例: `patent-research`→`analysis-patent-research`）。オーケストレーション系スキル（`project-create`/`research-kickoff`）は業務横断で使うため、プレフィックスなしの共通スキルとして維持する方針。
+- `patent-mcp`（特許MCPサーバー本体）は将来的に本リポジトリ外の独立リポジトリとして管理し、`.mcp.json`から絶対パス／インストール済みコマンドで参照する（現状はリポジトリ内`patent-mcp/`に同梱・相対パス参照）。
+- 新しい業務プロジェクトを追加する手順（着手時の参考。詳細は要件定義書12章）:
+  1. `projects/<業務名>/`フォルダを作成し、`_index.md`・`_template/`・`_archive/`を用意する。
+  2. `.claude/skills/`直下に当該業務のプレフィックスを付けたスキルフォルダを追加する。
+  3. `projects/<業務名>/README.md`に業務固有のルールを記載する。
+  4. CLAUDE.mdには業務追加の旨と当該README.mdへの参照のみ追記する。
+  5. 1案件でテスト運用し、必要に応じてHooksの検証ルールやLEARNINGS.mdに知見を反映する。
 - market-research スキルへの社内データソース（MCP経由）連携
 - 出力ファイルのフォーマットのテンプレート固定化（スキル間の受け渡し精度向上）
 - 評価用サブエージェント、カスタムスラッシュコマンドによる定型エントリポイントの導入

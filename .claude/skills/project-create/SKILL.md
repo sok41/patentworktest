@@ -1,6 +1,9 @@
 ---
 name: project-create
 description: ユーザーが「〇〇に関するプロジェクトを作成して」のように、調査観点の中身を伴わず案件名だけを指定した場合に、projects/_templateを元に空の案件フォルダ（YYYY-MM-DD_案件名スラッグ）を作成する。00_overview.mdへの記入はまだ行わず、ユーザー自身の手動記入を待つ。
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-09-25"
 ---
 
 # project-create（案件フォルダの新規作成）

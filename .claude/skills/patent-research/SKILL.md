@@ -1,6 +1,9 @@
 ---
 name: patent-research
 description: 案件の00_overview.mdにある特許調査観点をもとにCQL検索式を作成し、patent-mcp（EPO OPS経由の特許MCPサーバー）で検索を実行して結果を整理する。「特許調査して」「patent-research」「案件の特許調査を始めたい」といった依頼で使用する。
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-09-25"
 ---
 
 # patent-research（特許調査スキル）
@@ -36,12 +39,20 @@ MCPサーバーが未接続・未承認、または `patent-mcp/.env` にキー�
 4. ヒットした特許の中から調査観点に合致するものを選び、`get_bibliographic_data` で書誌・要約を取得する。
    - `patent_number` は `search_patents` の結果に含まれる `country`/`doc-number`/`kind` を `.` で連結した docdb 形式（例: `EP.4803425.A1`）で渡すこと。epodoc形式にkindコードを付けると見つからない場合があるため使わない。
 5. ヒットした特許をリスト化し、各特許のサマリ（概要・注目ポイント）を作成する。
+6. **グラフ生成（必須）**: 出願推移・出願人ランキングの2つのグラフを作成する。
+   - 集計対象は「対象特許リスト」に絞った少数の深掘り特許だけでなく、`search_patents` でヒットした母集団全体とする。深掘り件数が少ない場合は `range_end` を広げて（例: 100件程度まで）再検索し、公開日／出願人の分布を十分な件数で集計すること。
+   - 出願推移: 集計した特許の公開年（または出願年、データが取れる方）ごとの件数を年次で集計し、`scripts/chart_utils.py` の `save_line_chart` で折れ線グラフを作成する。
+   - 出願人ランキング: 出願人（`pa=`で使った表記のゆれを名寄せする）ごとの件数を集計し、上位10社程度を `save_bar_chart`（`horizontal=True`）で横棒グラフにする。
+   - 初回利用時は `pip install -r scripts/requirements.txt` が必要（詳細は [scripts/README.md](../../../scripts/README.md)）。
+   - 生成したPNGは `01_research/patent/charts/filing_trend.png` と `01_research/patent/charts/applicant_ranking.png` に保存し、`research_output.md` から相対パスの画像リンクで埋め込む。
 
 ## 出力
 
 - `01_research/patent/research_output.md`
   - 使用した検索式
   - 対象特許リスト（特許番号／出願人／出願日／タイトル）
+  - 出願推移（グラフ画像 + 集計元の件数）
+  - 出願人ランキング（グラフ画像 + 集計元の件数）
   - 各特許のサマリ
   - 出典・参考URL
 
